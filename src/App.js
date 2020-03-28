@@ -7,12 +7,15 @@ import {
   Main,
   TextArea,
   TextInput,
+  defaultProps,
 } from 'grommet';
 import { Notification, StatusPlaceholder } from "grommet-icons";
 
 const A_CODE = 65;
 const Z_CODE = 90;
 const SPACE = ' ';
+const LEN_ALPHABET = 26;
+const TEXT_BOX_N_GRAM = 5;
 
 const theme = {
   global: {
@@ -46,28 +49,37 @@ function HomeGrid(props) {
     >
       <Box gridArea='text'> 
        <TextArea
+          onChange = {props.handleMessageEdit}
+          value = {props.message}
           placeholder="Type message here..."
           focusIndicator={false}
           resize={false}
           fill={true}
           name='TextInput'
+          spellCheck='false'
         />
       </Box>
       <Box gridArea='key'>
         <TextInput
+          onChange = {props.handleKeyEdit}
+          value = {props.keyVal}
           placeholder='Type key here...'
+          spellCheck='false'
         />
       </Box>
       <Box gridArea='encrypt'>
         <Button
           label='Encrypt'
           size='small'
+          onClick = {props.handleEncrypt}
+          focusIndicator={false}
         />
       </Box>
       <Box gridArea='decrypt'>
         <Button
           label='Decrypt'
           size='small'
+          onClick={props.handleDecrypt}
         />
       </Box> 
       <Box gridArea='break'>
@@ -92,20 +104,104 @@ function HomeGrid(props) {
   );
 }
 
-function App() {
-  return (
-    <Grommet theme={theme} full>
-      <Main>
-        <Box width='large' alignSelf='center'>
-          <HomeGrid></HomeGrid>
-        </Box>
-      </Main>
-    </Grommet>
-  );
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      message: '',
+      messageBox: '',
+      key: '',
+      dummyForceRender: true,
+    };
+  }
+
+  handleEditMessage (event) {
+    let input = processMessage(event.target.value);
+    this.setState({
+      message:input,
+      messageBox:toNGram(input,TEXT_BOX_N_GRAM),
+      dummyForceRender: !this.state.dummyForceRender,
+    });    
+  }
+
+  handleEncrypt(event) {
+    if(this.state.key.length <= 0) {
+      return;
+    }
+    let enc = encryptVigenere( this.state.message, this.state.key );
+    this.setState({
+      message: enc,
+      messageBox:toNGram(enc,TEXT_BOX_N_GRAM),
+    });
+  }
+
+  handleDecrypt(event) {
+    if(this.state.key.length <= 0) {
+      return;
+    }
+    let dec = decryptVigenere( this.state.message, this.state.key );
+    this.setState({
+      message: dec,
+      messageBox:toNGram(dec,TEXT_BOX_N_GRAM),
+    });
+  }
+
+  handleEditKey(event) {
+    this.setState({
+      key:processMessage(event.target.value),
+    });
+  }
+
+  render () {
+    return (
+      <Grommet theme={theme} full>
+        <Main>
+          <Box width='large' alignSelf='center'>
+            <HomeGrid
+              message={this.state.messageBox}
+              handleMessageEdit={event => this.handleEditMessage(event)}
+              handleKeyEdit={event => this.handleEditKey(event)}
+              keyVal={this.state.key}
+              dummy={this.state.dummyForceRender}
+              handleEncrypt={event => this.handleEncrypt(event)}
+              handleDecrypt={event => this.handleDecrypt(event)}
+            >
+            </HomeGrid>
+          </Box>
+        </Main>
+      </Grommet>
+    );
+  }
 }
 
-function handleKeyInput(event) {
-  
+/**
+ * Decrypts a given cyphertext and key using a vigenere cypher
+ * @param {String} cyphertext the message to decrypt. Must be in character set [A-Z]
+ * @param {String} key the key used to decrypt message. 
+ *                     Must be longer than 0, and in charater set [A-Z] 
+ * @returns decrypted messaged as a string
+ */
+function decryptVigenere (cyphertext, key) {
+  let output = '';
+  for(let i = 0; i < cyphertext.length; i++) {
+    output += String.fromCharCode(A_CODE + (( (cyphertext.charCodeAt(i) - A_CODE) - (key.charCodeAt(i % key.length) - A_CODE) + LEN_ALPHABET) % LEN_ALPHABET));
+  }
+  return output;
+}
+
+/**
+ * Encripts a given plaintext and key using a vigenere cypher
+ * @param {String} plaintext the message to encrypt. Must be in character set [A-Z]
+ * @param {String} key the key used to encrypt message. 
+ *                     Must be longer than 0, and in charater set [A-Z] 
+ * @returns encrypted messaged as a string
+ */
+function encryptVigenere (plaintext, key) {
+  let output = '';
+  for(let i = 0; i < plaintext.length; i++) {
+    output += String.fromCharCode(A_CODE + (( (plaintext.charCodeAt(i) - A_CODE) + (key.charCodeAt(i % key.length) - A_CODE) ) % LEN_ALPHABET));
+  }
+  return output;
 }
 
 /**
@@ -132,7 +228,7 @@ function toNGram(message, n) {
  * @returns processed string
  */
 function processMessage(message) {
-  message.toUpperCase();
+  message = message.toUpperCase();
   let output = '';
   for(let i = 0; i < message.length; i++) {
     //concat char to the end of output
