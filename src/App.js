@@ -143,18 +143,27 @@ function BreakGrid(props) {
         <ComposedChart 
           width={GRAPH_WIDTH}
           height={GRAPH_HEIGHT}
-          data={freqArray()}
+          data={props.data}
+          barGap={0}
         >
-          <XAxis dataKey='name' />
-          <Bar dataKey='globalFreq' />
-          <Bar dataKey='freq' />
+          <XAxis dataKey='localName' />
+          <Bar 
+            dataKey='localFreq'
+            isAnimationActive={false}
+            fill='#228BE6'
+          />
+          <Bar 
+            dataKey='globalFreq' 
+            isAnimationActive={false}
+            fill='#E67D22'
+          />
         </ComposedChart>
         <BarChart 
           width={GRAPH_WIDTH}
           height={25}
-          data={freqArray()}
+          data={props.data}
         >
-          <XAxis dataKey='name' />
+          <XAxis dataKey='globalName' />
         </BarChart>
       </Box>
       <Box gridArea='slider'> 
@@ -189,7 +198,15 @@ class App extends React.Component {
       key: '',
       home: true,
       offset: 0,
+      data: Array(),
     };
+    this.updateData(0);
+  }
+
+  updateData(offset) {
+    this.setState({
+      data: freqArray(ENGLISH_FREQ, offset),
+    });
   }
 
   handleDecryptBreak(event) {
@@ -233,6 +250,7 @@ class App extends React.Component {
     this.setState({
       offset: event.target.value,
     });
+    this.updateData(event.target.value);
   }
 
   handleEditKey(event) {
@@ -246,6 +264,7 @@ class App extends React.Component {
       home: !this.state.home,
       offset: 0,
     });
+    this.updateData(0);
   }
 
   renderPage() {
@@ -270,6 +289,7 @@ class App extends React.Component {
             <BreakGrid 
               handleDecryptBreak={event => this.handleDecryptBreak(event)}
               handleSlider={event => this.handleSlider(event)}
+              data={this.state.data}
             >
             </BreakGrid>
           </Box>
@@ -290,12 +310,17 @@ class App extends React.Component {
 
 /**
  * Formats and returns an array with letter frequencies
+ * @param {float[]} freq
+ * @param {int} offset
  */
-function freqArray() {
+function freqArray(freq, offset) {
   let data = Array();
   for(let i = 0; i < LEN_ALPHABET; i++) {
-    let name = String.fromCharCode(A_CODE + i);
-    data.push({'name': name, 'globalFreq': ENGLISH_FREQ[i], 'freq': 0.05});
+    let localOffset = (i + parseInt(offset)) % LEN_ALPHABET;
+    let inverseOffset = (i - parseInt(offset) + LEN_ALPHABET) % LEN_ALPHABET;
+    let globalName = String.fromCharCode(A_CODE + i);
+    let localName = String.fromCharCode(A_CODE + localOffset);
+    data.push({'globalName': globalName, 'globalFreq': ENGLISH_FREQ[i], 'localName': localName, 'localFreq': freq[inverseOffset]});
   }
   return data;
 }
