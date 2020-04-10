@@ -6,15 +6,24 @@ import {
   Grommet,
   Main,
   RangeInput,
+  Text,
   TextArea,
   TextInput,
+  Markdown,
 } from 'grommet';
+import {
+  Add,
+  Subtract,
+  Previous,
+  Next,
+} from 'grommet-icons'
 import {
   Bar,
   BarChart,
   ComposedChart,
   XAxis,
 } from 'recharts';
+import { isCompositeComponent } from 'react-dom/test-utils';
 
 const A_CODE = 65;
 const Z_CODE = 90;
@@ -23,12 +32,19 @@ const GRAPH_WIDTH = 580; //grommet large
 const SPACE = ' ';
 const LEN_ALPHABET = 26;
 const TEXT_BOX_N_GRAM = 5;
+const MAX_KEY_LEN = 15;
+const MAX_MESSAGE_LEN = 23;
 const ENGLISH_FREQ = [0.08167, 0.01492, 0.02202, 0.04253, 0.12702, 0.02228, 
                       0.02015, 0.06094, 0.06966, 0.00153, 0.01292, 0.04025, 
                       0.02406, 0.06749, 0.07507, 0.01929, 0.00095, 0.05987,
                       0.06327, 0.09356, 0.02758, 0.00978, 0.02560, 0.00150, 
-                      0.01994, 0.00077]
-
+                      0.01994, 0.00077];
+const RANDOM_PLAINTEXT = ['HACKISADISPLAYORIENTEDDUNGEONSDRAGONSLIKEGAMEBOTHDISPLAYANDCOMMANDSTRUCTURERESEMBLEROGUEFORAGAMEWITHTHESAMESTRUCTUREBUTENTIRELYDIFFERENTDISPLAYAREALCAVEINSTEADOFDULLRECTANGLESTRYQUESTTOGETSTARTEDYOUREALLYONLYNEEDTOKNOWTWOCOMMANDSTHECOMMANDWILLGIVEYOUALISTOFTHEAVAILABLECOMMANDSANDTHECOMMANDWILLIDENTIFYTHETHINGSYOUSEEONTHESCREENTOWINTHEGAMEASOPPOSEDTOMERELYPLAYINGTOBEATOTHERPEOPLEHIGHSCORESYOUMUSTLOCATETHEAMULETOFYENDORWHICHISSOMEWHEREBELOWTHETWENTIETHLEVELOFTHEDUNGEONANDGETITOUTNOBODYHASACHIEVEDTHISYETANDIFSOMEBODYDOESHEWILLPROBABLYGODOWNINHISTORYASAHEROAMONGHEROSWHENTHEGAMEENDSEITHERBYYOURDEATHWHENYOUQUITORIFYOUESCAPEFROMTHECAVESHACKWILLGIVEYOUAFRAGMENTOFTHELISTOFTOPSCORERSTHESCORINGISBASEDONMANYASPECTSOFYOURBEHAVIOURBUTAROUGHESTIMATEISOBTAINEDBYTAKINGTHEAMOUNTOFGOLDYOUVEFOUNDINTHECAVEPLUSFOURTIMESYOURREALEXPERIENCEPRECIOUSSTONESMAYBEWORTHALOTOFGOLDWHENBROUGHTTOTHEEXITTHEREISATENPERCENTPENALTYFORGETTINGYOURSELFKILLED',
+                          'THEMOSTNOTICEABLEEFFECTTHISCOMMUNICATIONHASONTHEGAMEISTHEDELAYINMOVINGSUPPOSEAPLAYERTYPESAMOVEFORHISSHIPANDHITSRETURNWHATHAPPENSTHENTHEPLAYERPROCESSSAVESUPMESSAGESTOBEWRITTENTOTHETEMPORARYFILEINABUFFEREVERYSEVENSECONDSORSOTHEPLAYERPROCESSGETSEXCLUSIVEACCESSTOTHETEMPORARYFILEANDWRITESOUTITSBUFFERTOTHEFILETHEDRIVERRUNNINGASYNCHRONOUSLYMUSTREADINTHEMOVEMENTCOMMANDPROCESSITANDWRITEOUTTHERESULTSTHISTAKESTWOEXCLUSIVEACCESSESTOTHETEMPORARYFILEFINALLYWHENTHEPLAYERPROCESSGETSAROUNDTODOINGANOTHERSEVENSECONDUPDATETHERESULTSOFTHEMOVEAREDISPLAYEDONTHESCREENHENCEEVERYMOVEMENTREQUIRESFOUREXCLUSIVEACCESSESTOTHETEMPORARYFILEANYWHEREFROMSEVENTOTWENTYONESECONDSDEPENDINGUPONASYNCHRONYBEFORETHEPLAYERSEESTHERESULTSOFHISMOVESAFTERTHEPLAYERWRITESOUTAFIRSTMOVEMENTMESSAGEASECONDMOVEMENTCOMMANDCANTHENBEISSUEDTHEFIRSTMESSAGEWILLBEINTHETEMPORARYFILEWAITINGFORTHEDRIVERANDTHESECONDWILLBEINTHEFILEBUFFERWAITINGTOBEWRITTENTOTHEFILETHUSBYALWAYSTYPINGMOVESATURNAHEADOFTHETIMETHEPLAYERCANSAILAROUNDQUITEQUICKLY',
+                          'IFYOUHAVENEVERPLAYEDSOLITAIREBEFOREITISRECOMMENDEDTHATYOUCONSULTASOLITAIREINSTRUCTIONBOOKINCANFIELDTABLEAUCARDSMAYBEBUILTONEACHOTHERDOWNWARDINALTERNATECOLORSANENTIREPILEMUSTBEMOVEDASAUNITINBUILDINGTOPCARDSOFTHEPILESAREAVAILABLETOBEPLAYEDONFOUNDATIONSBUTNEVERINTOEMPTYSPACESSPACESMUSTBEFILLEDFROMTHESTOCKTHETOPCARDOFTHESTOCKALSOISAVAILABLETOBEPLAYEDONFOUNDATIONSORBUILTONTABLEAUPILESAFTERTHESTOCKISEXHAUSTEDTABLEAUSPACESMAYBEFILLEDFROMTHETALONANDTHEPLAYERMAYKEEPTHEMOPENUNTILHEWISHESTOUSETHEMCARDSAREDEALTFROMTHEHANDTOTHETALONBYTHREESANDTHISREPEATSUNTILTHEREARENOMORECARDSINTHEHANDORTHEPLAYERQUITSTOHAVECARDSDEALTONTOTHETALONTHEPLAYERTYPESHTFORHISMOVEFOUNDATIONBASECARDSAREALSOAUTOMATICALLYMOVEDTOTHEFOUNDATIONWHENTHEYBECOMEAVAILABLE',
+                          'ROBOTSPITSYOUAGAINSTEVILROBOTSWHOARETRYINGTOKILLYOUWHICHISWHYTHEYAREEVILFORTUNATELYFORYOUEVENTHOUGHTHEYAREEVILTHEYARENOTVERYBRIGHTANDHAVEAHABITOFBUMPINGINTOEACHOTHERTHUSDESTROYINGTHEMSELVESINORDERTOSURVIVEYOUMUSTGETTHEMTOKILLEACHOTHEROFFSINCEYOUHAVENOOFFENSIVEWEAPONRYSINCEYOUARESTUCKWITHOUTOFFENSIVEWEAPONRYYOUAREENDOWEDWITHONEPIECEOFDEFENSIVEWEAPONRYATELEPORTATIONDEVICEWHENTWOROBOTSRUNINTOEACHOTHERORAJUNKPILETHEYDIEIFAROBOTRUNSINTOYOUYOUDIEWHENAROBOTDIESYOUGETTENPOINTSANDWHENALLTHEROBOTSDIEYOUSTARTONTHENEXTFIELDTHISKEEPSUPUNTILTHEYFINALLYGETYOUONLYFIVESCORESAREALLOWEDPERUSERONTHESCOREFILEIFYOUMAKEITINTOTHESCOREFILEYOUWILLBESHOWNTHELISTATTHEENDOFTHEGAMEIFANALTERNATESCOREFILEISSPECIFIEDTHATWILLBEUSEDINSTEADOFTHESTANDARDFILEFORSCORESY',
+                          'ATTHESTARTOFTHEFIRSTGAMETHEPROGRAMASKSTHEPLAYERTOCUTTHEDECKTODETERMINEWHOGETSTHEFIRSTCRIBTHEUSERSHOULDRESPONDWITHANUMBERBETWEENZEROANDFIFTYONEINDICATINGHOWMANYCARDSDOWNTHEDECKISTOBECUTTHEPLAYERWHOCUTSTHELOWERRANKEDCARDGETSTHEFIRSTCRIBIFMORETHANONEGAMEISPLAYEDTHELOSEROFTHEPREVIOUSGAMEGETSTHEFIRSTCRIBINTHECURRENTGAMEFOREACHHANDTHEPROGRAMFIRSTPRINTSTHEPLAYERSHANDWHOSECRIBITISANDTHENASKSTHEPLAYERTODISCARDTWOCARDSINTOTHECRIBTHECARDSAREPROMPTEDFORONEPERLINEANDARETYPEDASEXPLAINEDBELOWAFTERCUTTINGTHEDECKPLAYSTARTSWITHTHENONDEALERTHEPERSONWHODOESNTHAVETHECRIBLEADINGTHEFIRSTCARDPLAYCONTINUESASPERCRIBBAGEUNTILALLCARDSAREEXHAUSTEDTHEPROGRAMKEEPSTRACKOFTHESCORINGOFALLPOINTSANDTHETOTALOFTHECARDSONTHETABLEAFTERPLAYTHEHANDSARESCOREDTHEPROGRAMREQUESTSTHEPLAYERTOSCOREHISHANDANDTHECRIBIFITISHISBYPRINTINGOUTTHEAPPROPRIATECARDSANDTHECUTCARDENCLOSEDINBRACKETSPLAYCONTINUESUNTILONEPLAYERREACHESTHEGAMELIMITACARRIAGERETURNWHENANUMERICINPUTISEXPECTEDISEQUIVALENTTOTYPINGTHELOWESTLEGALVALUEWHENCUTTINGTHEDECKTHISISEQUIVALENTTOCHOOSINGTHETOPCARD'];
+const RANDOM_KEY = ['AWESOME', 'VOLCANO', 'REWARD', 'HUNTER', 'ABSTRACT', 'MEDICINE', 'NIGHT', 'TOAST'];
 
 const theme = {
   global: {
@@ -106,12 +122,14 @@ function HomeGrid(props) {
         <Button
           label='Random Plaintext'
           size='small'
+          onClick={props.handleRandomPT}
         />
       </Box>
       <Box gridArea='randCT'>
         <Button
           label='Random Cyphertext'
           size='small'
+          onClick={props.handleRandomCT}
         />
       </Box>
     </Grid>
@@ -135,9 +153,23 @@ function BreakGrid(props) {
       gap='small'
       margin='xlarge'
     >
-      <Box gridArea='keyword'> 
+      <Box 
+        gridArea='keyword'
+        border='true'
+        round='small'
+        align='center'
+      > 
+        <Text>----Keyword----</Text>
+        <Markdown>{props.keyDisplay}</Markdown>
       </Box>
-      <Box gridArea='sampleText'> 
+      <Box 
+        gridArea='sampleText'
+        border='true'
+        round='small'
+        align='center'
+      > 
+        <Text>Sample Text</Text>
+        <Markdown>{props.sampleMessage}</Markdown>
       </Box>
       <Box gridArea='graph'> 
         <ComposedChart 
@@ -166,17 +198,54 @@ function BreakGrid(props) {
           <XAxis dataKey='globalName' />
         </BarChart>
       </Box>
-      <Box gridArea='slider'> 
+      <Box 
+        gridArea='slider'
+        allign='baseline'
+      > 
         <RangeInput
           min={0}
           max={25}
-          value={0}
+          value={props.sliderDefault}
           onChange={props.handleSlider}
         />
       </Box>
-      <Box gridArea='period'> 
+      <Box 
+        gridArea='period'
+        direction='row'
+        align='baseline'
+        alignContent='around'
+        alignSelf='stretch'
+      > 
+        <Text>Period:</Text>
+        <Button
+          icon={<Subtract size='small' />}
+          size='small'
+          onClick={props.handlePeriodMinus}
+        />
+        <Button
+          icon={<Add size='small'/>}
+          size='small'
+          onClick={props.handlePeriodPlus}
+        />
       </Box>
-      <Box gridArea='position'> 
+      <Box 
+        gridArea='position'
+        direction='row'
+        align='baseline'
+        alignContent='around'
+        alignSelf='stretch'
+      > 
+        <Text>Positon:</Text>
+        <Button
+          icon={<Previous size='small' />}
+          size='small'
+          onClick={props.handlePositionPrevious}
+        />
+        <Button
+          icon={<Next size='small'/>}
+          size='small'
+          onClick={props.handlePositionNext}
+        />
       </Box>
       <Box gridArea='decrypt'> 
         <Button
@@ -196,16 +265,21 @@ class App extends React.Component {
       message: '',
       messageBox: '',
       key: '',
+      keyDisplay: '',
       home: true,
       offset: 0,
       data: Array(),
+      sampleMessage: '',
+      breakKeyDisplay:'',
+      position: 0,
+      sliderPos:0,
     };
     this.updateData(0);
   }
 
-  updateData(offset) {
+  updateData(offset, position = this.state.position, period = this.state.key.length) {
     this.setState({
-      data: freqArray(ENGLISH_FREQ, offset),
+      data: freqArray(getFreq(this.state.message, period, position), offset),
     });
   }
 
@@ -217,10 +291,41 @@ class App extends React.Component {
   }
 
   handleEditMessage (event) {
-    let input = processMessage(event.target.value);
+    this.updateMessae(event.target.value);
+  }
+  
+  updateMessae( newMessage, pos = this.state.position, key = this.state.key ) {
+    let input = processMessage(newMessage);
+    let newMessageBox = toNGram(input,TEXT_BOX_N_GRAM);
+    /**
+    if( newMessageBox === this.state.messageBox ) {
+      newMessageBox += ' ';
+    }
+    */
     this.setState({
       message:input,
-      messageBox:toNGram(input,TEXT_BOX_N_GRAM),
+      messageBox:newMessageBox,
+      sampleMessage:boldN(decryptVigenere(input.substring(0, MAX_MESSAGE_LEN), this.state.key), pos, key.length),
+    });    
+  }
+
+  handleEditKey(event) {
+    this.updateKey(event.target.value);
+  }
+
+  updateKey( newKey, pos = this.state.position ) {
+    let input = processMessage(newKey);
+    let newKeyBox = input;
+    /**
+    if( newKeyBox === this.state.keyDisplay ) {
+      newKeyBox += ' ';
+    }
+    */
+    this.setState({
+      key:input,
+      keyDisplay:newKeyBox,
+      breakKeyDisplay:boldN(input, pos, input.length),
+      sampleMessage:boldN(decryptVigenere(this.state.message.substring(0, MAX_MESSAGE_LEN), input), pos, input.length),
     });    
   }
 
@@ -229,10 +334,7 @@ class App extends React.Component {
       return;
     }
     let enc = encryptVigenere( this.state.message, this.state.key );
-    this.setState({
-      message: enc,
-      messageBox:toNGram(enc,TEXT_BOX_N_GRAM),
-    });
+    this.updateMessae(enc);
   }
 
   handleDecrypt(event) {
@@ -240,31 +342,105 @@ class App extends React.Component {
       return;
     }
     let dec = decryptVigenere( this.state.message, this.state.key );
-    this.setState({
-      message: dec,
-      messageBox:toNGram(dec,TEXT_BOX_N_GRAM),
-    });
+    this.updateMessae(dec);
   }
 
   handleSlider(event) {
     this.setState({
       offset: event.target.value,
+      sliderPos: event.target.value,
     });
     this.updateData(event.target.value);
-  }
-
-  handleEditKey(event) {
+    let newKey = this.state.key.substring(0, this.state.position); 
+    newKey += String.fromCharCode(A_CODE + ((LEN_ALPHABET - parseInt(event.target.value)) % LEN_ALPHABET) ); 
+    newKey += this.state.key.substring(this.state.position + 1);
+    this.updateKey(newKey);
     this.setState({
-      key:processMessage(event.target.value),
+      sampleMessage:boldN(decryptVigenere(this.state.message.substring(0, MAX_MESSAGE_LEN), newKey), this.state.position, newKey.length),
     });
   }
 
   handleBreak(event) {
+    let offset = this.state.key.charCodeAt(this.state.position) - A_CODE;
+    let position = this.state.position;
+    let period = this.state.key.length;
     this.setState({
       home: !this.state.home,
-      offset: 0,
+      offset: (this.state.key.charCodeAt(0) - A_CODE),
     });
     this.updateData(0);
+    if(this.state.key === '') {
+      this.updateKey('A');
+      this.setState({
+        sampleMessage:boldN(decryptVigenere(this.state.message.substring(0, MAX_MESSAGE_LEN), 'A'), this.state.position, 1),
+        offset: 0,
+      });
+      offset = 0;
+      position = 0;
+      period = 1;
+    }
+    this.updateData(offset, position, period);
+  }
+
+  handleNewPeriod(newLen) {
+    if(newLen <= 0 || newLen > MAX_KEY_LEN) {
+        return;
+    }
+    let newKey = ''
+    for(let i = 0; i < newLen; i++) {
+      newKey += 'A';
+    }
+    this.setState({
+      position:0,
+      offset:0,
+      sliderPos:0,
+    });
+    this.updateKey(newKey, 0);
+    this.updateMessae(this.state.message, 0, newKey);
+    this.updateData(0, 0, newLen);
+  }
+
+  handlePeriodMinus(event) {
+    let newPeriod = this.state.key.length - 1;
+    this.handleNewPeriod(newPeriod);
+  }
+
+  handlePeriodPlus(event) {
+    let newPeriod = this.state.key.length + 1;
+    this.handleNewPeriod(newPeriod);
+  }
+
+  handleNewPosition(newPos){
+    if(newPos < 0 || newPos >= this.state.key.length) {
+      return;
+    }
+    this.setState({
+      position:newPos,
+      breakKeyDisplay:boldN(this.state.key, newPos, this.state.key.length),
+      sampleMessage:boldN(processMessage(this.state.sampleMessage), newPos, this.state.key.length),
+      sliderPos:(Z_CODE - this.state.key.charCodeAt(newPos) + 1) % LEN_ALPHABET,
+      offset:this.state.key.charCodeAt(newPos),
+    });
+    this.updateData(Z_CODE - this.state.key.charCodeAt(newPos) + 1, newPos);
+  }
+
+  handlePositionNext(event) {
+    this.handleNewPosition(this.state.position + 1);    
+  }
+
+  handlePositionPrevious(event) {
+    this.handleNewPosition(this.state.position - 1);    
+  }
+
+  handleRandomCT(event) {
+    let key = RANDOM_KEY[Math.floor(Math.random() * RANDOM_KEY.length)];
+    this.updateKey('');
+    this.updateMessae( encryptVigenere(RANDOM_PLAINTEXT[Math.floor(Math.random() * RANDOM_PLAINTEXT.length)], key));
+  }
+
+  handleRandomPT(event) {
+    this.updateKey('');
+    this.updateMessae(RANDOM_PLAINTEXT[Math.floor(Math.random() * RANDOM_PLAINTEXT.length)]);
   }
 
   renderPage() {
@@ -275,10 +451,12 @@ class App extends React.Component {
               message={this.state.messageBox}
               handleMessageEdit={event => this.handleEditMessage(event)}
               handleKeyEdit={event => this.handleEditKey(event)}
-              keyVal={this.state.key}
+              keyVal={this.state.keyDisplay}
               handleEncrypt={event => this.handleEncrypt(event)}
               handleDecrypt={event => this.handleDecrypt(event)}
               handleBreak={event => this.handleBreak(event)}
+              handleRandomPT={event => this.handleRandomPT(event)}
+              handleRandomCT={event => this.handleRandomCT(event)}
             >
             </HomeGrid>
           </Box>
@@ -290,6 +468,13 @@ class App extends React.Component {
               handleDecryptBreak={event => this.handleDecryptBreak(event)}
               handleSlider={event => this.handleSlider(event)}
               data={this.state.data}
+              keyDisplay={this.state.breakKeyDisplay}
+              sampleMessage={this.state.sampleMessage}
+              handlePeriodMinus={event => this.handlePeriodMinus(event)}
+              handlePeriodPlus={event => this.handlePeriodPlus(event)}
+              handlePositionNext={event => this.handlePositionNext(event)}
+              handlePositionPrevious={event => this.handlePositionPrevious(event)}
+              sliderDefault={this.state.sliderPos}
             >
             </BreakGrid>
           </Box>
@@ -309,6 +494,48 @@ class App extends React.Component {
 }
 
 /**
+ * Returns an array with the frequencies of every period-th character,
+ * starting at the positon character in the message
+ * @param {String} message the message to be looked at
+ * @param {int} period the length of the key
+ * @param {int} position the character we want in the key
+ */
+function getFreq(message, period, position) {
+  let output = Array(LEN_ALPHABET).fill(0);
+  let total = 0;
+  if(period === 0) {
+    return output;
+  }
+  for(let i = position; i < message.length; i += period) {
+    output[message.charCodeAt(i) - A_CODE]++;
+    total++;
+  }
+  if(total > 0) {
+    for(let i = 0; i < output.length; i++){
+      output[i] = (1.0 *output[i]) / (1.0 *total);
+    }
+  }
+  return output;
+}
+
+/**
+ * Bolds every nth character in the string
+ * @param {String} string 
+ * @param {int} n in range [0, string.length-1]
+ */
+function boldN(string, n, period) {
+  let output = '';
+  for(let i = 0; i < string.length; i++) {
+    if( i  % period === parseInt(n)) {
+      output += '**' + string.charAt(i) + '**';
+    } else {
+      output += string.charAt(i);
+    }
+  }
+  return output;
+}
+
+/**
  * Formats and returns an array with letter frequencies
  * @param {float[]} freq
  * @param {int} offset
@@ -316,10 +543,10 @@ class App extends React.Component {
 function freqArray(freq, offset) {
   let data = Array();
   for(let i = 0; i < LEN_ALPHABET; i++) {
-    let localOffset = (i + parseInt(offset)) % LEN_ALPHABET;
+    //I don't know why it needs an inverse offset
     let inverseOffset = (i - parseInt(offset) + LEN_ALPHABET) % LEN_ALPHABET;
     let globalName = String.fromCharCode(A_CODE + i);
-    let localName = String.fromCharCode(A_CODE + localOffset);
+    let localName = String.fromCharCode(A_CODE + inverseOffset);
     data.push({'globalName': globalName, 'globalFreq': ENGLISH_FREQ[i], 'localName': localName, 'localFreq': freq[inverseOffset]});
   }
   return data;
@@ -333,6 +560,9 @@ function freqArray(freq, offset) {
  * @returns decrypted messaged as a string
  */
 function decryptVigenere (cyphertext, key) {
+  if(key.length <= 0) {
+    return cyphertext;
+  }
   let output = '';
   for(let i = 0; i < cyphertext.length; i++) {
     output += String.fromCharCode(A_CODE + (( (cyphertext.charCodeAt(i) - A_CODE) - (key.charCodeAt(i % key.length) - A_CODE) + LEN_ALPHABET) % LEN_ALPHABET));
