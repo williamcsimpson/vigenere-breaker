@@ -24,6 +24,7 @@ import {
   XAxis,
 } from 'recharts';
 import { isCompositeComponent } from 'react-dom/test-utils';
+import ArticleText from './Article';
 
 const A_CODE = 65;
 const Z_CODE = 90;
@@ -494,7 +495,10 @@ class App extends React.Component {
     return (
       <Grommet theme={theme} full>
         <Main>
+          <Box width='large' alignSelf='center'>
+          <ArticleText/>
           {this.renderPage()}
+          </Box>
         </Main>
       </Grommet>
     );
